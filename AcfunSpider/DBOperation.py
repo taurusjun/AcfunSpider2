@@ -1,5 +1,6 @@
 #!/usr/bin/python
 #coding=utf8
+# -*- coding: utf-8 -*-
 
 import logging
 from contextlib import contextmanager
@@ -38,9 +39,9 @@ class DBOperation:
         try:
             with session_scope(self.DBSession) as ss:
                 ss.add(item)
-            DBOperationLogging.info("保存item成功！%s" % str(item))
+            DBOperationLogging.info("Save item success! item: %s" % str(item))
         except:
-            DBOperationLogging.warning ("保存item失败！item: %s"% str(item))
+            DBOperationLogging.warning("Save item failed！item: %s"% str(item))
 
     def loadACfunCommentItemsToCache(self, cacheContainer):
         session = self.DBSession()
@@ -90,4 +91,4 @@ class DBOperation:
             session.merge(accmt)
         session.commit()
         session.close()
-        DBOperationLogging.info("%s memery items saved!" % itemCount)
+        DBOperationLogging.info("%s memory items saved!" % itemCount)

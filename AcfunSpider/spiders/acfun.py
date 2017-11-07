@@ -25,13 +25,15 @@ class AcfunSpider(CrawlSpider):
         "http://www.acfun.cn/v/list110/index.htm"
         # "http://www.acfun.cn/a/ac3998668"
     ]
-    _cache = LRU(10240)
+    _cache = LRU(20480)
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.logger.info("initlizing...")
+        super(AcfunSpider, self).__init__(*args, **kwargs)
         self.DBUtils=DBOperation()
         self.DBUtils.loadACfunCommentItemsToCache(self._cache)
         self.DBUtils.clearCacheItemInDB()
+        # dispatcher.connect(self.spider_idle, signals.spider_idle)
         self.logger.info("initlizing...Done.")
 
     @classmethod
@@ -84,14 +86,19 @@ class AcfunSpider(CrawlSpider):
             # 开始解析json评论
             for m, n in enumerate(commentsList):
                 commentJson = commentsList[n]
-                commentItem = AcfunCommentItem(commentJson)
-                # 设定acid
-                commentItem['acid'] = acid
-                # 默认是float，转成long
-                commentItem['cid'] = long(commentItem['cid'])
-                commentItem['quoteId'] = long(commentItem['quoteId'])
-                commentItem['userID'] = long(commentItem['userID'])
-                yield commentItem
+                try:
+                    commentItem = AcfunCommentItem(commentJson)
+                    # 设定acid
+                    commentItem['acid'] = acid
+                    # 默认是float，转成long
+                    commentItem['cid'] = long(commentItem['cid'])
+                    commentItem['quoteId'] = long(commentItem['quoteId'])
+                    commentItem['userID'] = long(commentItem['userID'])
+                    yield commentItem
+                except Exception,e:
+                    self.logger.error(str(e))
+                    self.logger.error("Error!commentJson:%s" % str(commentJson))
+                    pass
 
     def spider_idle(self):
         self.logger.info("Now LRU size is %s" % len(self._cache))

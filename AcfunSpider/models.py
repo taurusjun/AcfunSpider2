@@ -46,6 +46,7 @@ class ACComment(Base):
     isUpDelete = Column(Boolean)
     nameType = Column(Integer)
     verified = Column(Integer)
+    verifiedText = Column(Text)
     updateDate = Column(DateTime)
 
 class ACCommentCache(Base):
@@ -72,3 +73,4 @@ class ACCommentCache(Base):
     isUpDelete = Column(Boolean)
     nameType = Column(Integer)
     verified = Column(Integer)
+    verifiedText = Column(Text)

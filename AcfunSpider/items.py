@@ -41,3 +41,4 @@ class AcfunCommentItem(scrapy.Item):
     nameType = scrapy.Field()
     verified = scrapy.Field()
     updateDate = scrapy.Field()
+    verifiedText = scrapy.Field()
