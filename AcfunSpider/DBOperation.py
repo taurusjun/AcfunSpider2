@@ -40,8 +40,9 @@ class DBOperation:
             with session_scope(self.DBSession) as ss:
                 ss.add(item)
             DBOperationLogging.info("Save item success! item: %s" % str(item))
-        except:
-            DBOperationLogging.warning("Save item failed！item: %s"% str(item))
+        except Exception,e:
+            DBOperationLogging.error(e)
+            DBOperationLogging.error("Save item failed! item: %s"% str(item))
 
     def loadACfunCommentItemsToCache(self, cacheContainer):
         session = self.DBSession()
@@ -69,6 +70,7 @@ class DBOperation:
             itm['isUpDelete'] = accItm[17]
             itm['nameType'] = accItm[18]
             itm['verified'] = accItm[19]
+            itm['verifiedText'] = accItm[20]
             cid = itm['cid']
             cacheContainer[cid] = itm
         itemCount = len(accItems)
