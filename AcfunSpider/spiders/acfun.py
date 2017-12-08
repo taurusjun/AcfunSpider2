@@ -20,10 +20,8 @@ class AcfunSpider(CrawlSpider):
     name = "acfun"
     # allowed_domains = ["dmoz.org"]
     start_urls = [
-        # "http://www.dmoz.org/Computers/Programming/Languages/Python/Books/",
-        # "http://www.dmoz.org/Computers/Programming/Languages/Python/Resources/"
-        "http://www.acfun.cn/v/list110/index.htm"
-        # "http://www.acfun.cn/a/ac3998668"
+        # "http://www.acfun.cn/v/list110/index.htm"
+        "http://webapi.aixifan.com/query/article/list?pageNo=1&size=10&realmIds=5,1,2,4&originalOnly=false&orderType=1&filterTitleImage=true"
     ]
     _cache = LRU(20480)
 
@@ -52,12 +50,9 @@ class AcfunSpider(CrawlSpider):
             yield scrapy.Request(url=x, callback=self.parse0, dont_filter=True)
 
     def parse0(self, response):
-        # body_data = response.body;
-        # parse_data = self.get_parse_data(body_data);
-        # self.log('Hi, we get response!')
         replyListItems = self.parse_reply_list(response)
         for itm in replyListItems:
-            acid = itm['link'][0][5:]
+            acid = itm['acid']
             url = "http://www.acfun.cn/comment_list_json.aspx?contentId=" + str(acid) + "&currentPage=1"
             yield scrapy.Request(url, meta={'acid':str(acid)}, callback=self.parse_comment_contents, dont_filter=True)
 
@@ -68,12 +63,25 @@ class AcfunSpider(CrawlSpider):
 
     # 主内容区：xpath: '//div[@id="mainer"]//div[@id="block-content-article"]//div[@class="mainer"]/div[@class="item"]/a/@href'
     # 最新回复区：xpath: //div[@id="mainer"]//div[@id="block-reply-article"]//div[@class="mainer"]//a/@href'
+    # 2017/12/08 Acfun终于改版了，完全改成SPA形式，这样就不用去解析页面元素了，噢耶
     def parse_reply_list(self, response):
-        for sel in response.xpath('//div[@id="mainer"]//div[@id="block-reply-article"]//div[@class="mainer"]//a'):
-            item = AcfunItem()
-            item['title'] = sel.xpath('@title').extract()
-            item['link'] = sel.xpath('@href').extract()
-            yield item
+        # 2017/12/08 下面的页面解析不用了
+        # for sel in response.xpath('//div[@id="mainer"]//div[@id="block-reply-article"]//div[@class="mainer"]//a'):
+        #     item = AcfunItem()
+        #     item['title'] = sel.xpath('@title').extract()
+        #     item['link'] = sel.xpath('@href').extract()
+        #     yield item
+
+        # 2017/12/08 开始完全采用SPA，纯ajax取得数据
+        jsonresponse = json.loads(response.body_as_unicode())
+        code = jsonresponse['code']
+        if code == 200:
+            articleList = jsonresponse[u'data'][u'articleList']
+            for m, article in enumerate(articleList):
+                item = AcfunItem()
+                item['title'] = article[u'title']
+                item['acid'] = article[u'id']
+                yield item
 
     # 解析评论
     def parse_comment_contents(self,response):

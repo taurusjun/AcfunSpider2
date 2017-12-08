@@ -15,7 +15,7 @@ class AcfunspiderItem(scrapy.Item):
 
 class AcfunItem(scrapy.Item):
     title = scrapy.Field()
-    link = scrapy.Field()
+    acid = scrapy.Field()
 
 class AcfunCommentItem(scrapy.Item):
     ##
