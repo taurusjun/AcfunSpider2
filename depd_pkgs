@@ -1,0 +1,7 @@
+pip install MySQL-python
+(如果出错，则yum install MySQL-python)
+pip install lru-dict
+pip install SQLAlchemy
+pip install Pillow
+pip install scrapyd
+pip install scrapyd-client

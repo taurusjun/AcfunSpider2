@@ -1,7 +1,7 @@
 How to deploy the spider:
-1. install "scrapyd" use "pip install scrapyd"
+1. install "scrapyd" use "pip install scrapyd" and run "scrapyd"
 2. Move to your spider project directory, which should contain a scrapy.cfg file
-3. run "scrapyd-deploy"
+3. run "scrapyd-deploy" ONCE
 4. Use the similar cmd below to submit a spider job:
 curl http://localhost:6800/schedule.json -d project=AcfunSpider -d spider=acfun
 5. Cancel job cmd:

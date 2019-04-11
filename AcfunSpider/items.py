@@ -31,6 +31,7 @@ class AcfunCommentItem(scrapy.Item):
     localImgPath = scrapy.Field()
     count = scrapy.Field()
     deep = scrapy.Field()
+    isSignedUpCollege = scrapy.Field()
     refCount = scrapy.Field()
     ups = scrapy.Field()
     downs = scrapy.Field()
