@@ -8,7 +8,7 @@ import scrapy
 from scrapy.exceptions import DropItem
 from scrapy.pipelines.images import ImagesPipeline
 
-from AcfunSpider.models import ACComment
+from AcfunSpider.models import ACComment, ACTopic
 
 
 class AcfunspiderPipeline(object):
@@ -76,9 +76,13 @@ class DBPipeline(object):
     #     pipelineLogging.info("DBPipeline closed")
 
     def process_item(self, item, spider):
+        mDict = item.copy()
+        actopic = ACTopic(acid=mDict['acid'], topic=mDict['title'])
+        del mDict['title']
+        mDict['updateDate'] = datetime.now()
+        accmt = ACComment(**mDict)
+        accmt.actopic=actopic
 
-        item['updateDate'] = datetime.now()
-        accmt = ACComment(**item)
         self._DBOp.saveItem(accmt)
         pipelineLogging.info("Item saved: %s" % str(item))
         return item

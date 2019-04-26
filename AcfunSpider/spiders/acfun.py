@@ -53,8 +53,9 @@ class AcfunSpider(CrawlSpider):
         replyListItems = self.parse_reply_list(response)
         for itm in replyListItems:
             acid = itm['acid']
+            title = itm['title']
             url = "http://www.acfun.cn/comment_list_json.aspx?contentId=" + str(acid) + "&currentPage=1"
-            yield scrapy.Request(url, meta={'acid':str(acid)}, callback=self.parse_comment_contents, dont_filter=True)
+            yield scrapy.Request(url, meta={'acid':str(acid),'title':title}, callback=self.parse_comment_contents, dont_filter=True)
 
         # print 1
         # filename = response.url.split("/")[-2]
@@ -86,6 +87,8 @@ class AcfunSpider(CrawlSpider):
     # 解析评论
     def parse_comment_contents(self,response):
         acid = response.meta['acid']
+        title = response.meta['title']
+
         jsonresponse = json.loads(response.body_as_unicode())
         responseStatus = jsonresponse[u'status']
         responseSuccess = jsonresponse[u'success']
@@ -98,6 +101,8 @@ class AcfunSpider(CrawlSpider):
                     commentItem = AcfunCommentItem(commentJson)
                     # 设定acid
                     commentItem['acid'] = acid
+                    # 设定title
+                    commentItem['title'] = title
                     # 默认是float，转成long
                     commentItem['cid'] = long(commentItem['cid'])
                     commentItem['quoteId'] = long(commentItem['quoteId'])

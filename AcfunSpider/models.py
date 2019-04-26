@@ -9,6 +9,8 @@ import datetime
 from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import *
+from sqlalchemy.orm import relationship
+
 from settings import DATABASE
 
 
@@ -22,12 +24,19 @@ def _get_date():
 
 Base = declarative_base()
 
+class ACTopic(Base):
+    """主题类"""
+    __tablename__ = 'actopic'
+    acid = Column(BigInteger, primary_key=True)
+    topic = Column(Text)
+    accomments = relationship("ACComment", back_populates="actopic")
+
 class ACComment(Base):
     """文章类"""
     __tablename__ = 'accomment'
 
     cid = Column(BigInteger, primary_key=True)
-    acid = Column(BigInteger)
+    acid = Column(BigInteger, ForeignKey('actopic.acid'))
     quoteId = Column(BigInteger)
     content = Column(Text)
     postDate = Column(DateTime)
@@ -49,6 +58,7 @@ class ACComment(Base):
     verified = Column(Integer)
     verifiedText = Column(Text)
     updateDate = Column(DateTime)
+    actopic = relationship("ACTopic", back_populates="accomments")
 
 class ACCommentCache(Base):
     """文章类"""

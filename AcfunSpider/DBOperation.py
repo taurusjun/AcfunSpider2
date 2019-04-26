@@ -89,7 +89,9 @@ class DBOperation:
         session = self.DBSession()
         itemCount = len(cacheContainer)
         for itm in cacheContainer.values():
-            accmt = ACCommentCache(**itm)
+            mDict = itm.copy()
+            del mDict['title']
+            accmt = ACCommentCache(**mDict)
             session.merge(accmt)
         session.commit()
         session.close()

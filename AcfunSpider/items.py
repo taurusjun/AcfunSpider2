@@ -20,6 +20,7 @@ class AcfunItem(scrapy.Item):
 class AcfunCommentItem(scrapy.Item):
     ##
     acid = scrapy.Field()
+    title = scrapy.Field()
     ##
     cid = scrapy.Field()
     quoteId = scrapy.Field()
