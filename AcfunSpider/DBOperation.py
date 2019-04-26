@@ -38,7 +38,7 @@ class DBOperation:
     def saveItem(self,item):
         try:
             with session_scope(self.DBSession) as ss:
-                ss.add(item)
+                ss.merge(item)
             DBOperationLogging.info("Save item success! item: %s" % str(item))
         except Exception,e:
             DBOperationLogging.error(e)
