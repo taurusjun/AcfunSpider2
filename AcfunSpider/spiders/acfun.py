@@ -25,6 +25,9 @@ class AcfunSpider(CrawlSpider):
     ]
     _cache = LRU(20480)
 
+    proxy = '120.83.122.207:9999'
+    proxy2 = '120.83.122.207:9999'
+
     def __init__(self, *args, **kwargs):
         self.logger.info("initlizing...")
         super(AcfunSpider, self).__init__(*args, **kwargs)
@@ -33,6 +36,8 @@ class AcfunSpider(CrawlSpider):
         self.DBUtils.clearCacheItemInDB()
         # dispatcher.connect(self.spider_idle, signals.spider_idle)
         self.logger.info("initlizing...Done.")
+        self.http_proxy="http://"+str(self.proxy)
+        self.https_proxy="https://"+str(self.proxy2)
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -47,15 +52,20 @@ class AcfunSpider(CrawlSpider):
 
     def start_requests(self):
         for x in self.start_urls:
-            yield scrapy.Request(url=x, callback=self.parse0, dont_filter=True)
+            yield scrapy.Request(url=x, callback=self.parse0, meta={'proxy':self.http_proxy},dont_filter=True)
 
     def parse0(self, response):
         replyListItems = self.parse_reply_list(response)
         for itm in replyListItems:
             acid = itm['acid']
             title = itm['title']
-            url = "http://www.acfun.cn/comment_list_json.aspx?contentId=" + str(acid) + "&currentPage=1"
-            yield scrapy.Request(url, meta={'acid':str(acid),'title':title}, callback=self.parse_comment_contents, dont_filter=True)
+            # 20190825 更新评论获取接口
+            # url = "http://www.acfun.cn/comment_list_json.aspx?contentId=" + str(acid) + "&currentPage=1"
+            # 旧版评论
+            url = "https://www.acfun.cn/rest/pc-direct/comment/listByFloor?sourceId=" + str(acid) + "&sourceType=3&page=1"
+            # 新版评论
+            # url = "https://www.acfun.cn/rest/pc-direct/comment/list?sourceId=" + str(acid) + "&sourceType=3&page=1"
+            yield scrapy.Request(url, meta={'acid':str(acid),'title':title,'proxy':self.https_proxy}, callback=self.parse_comment_contents, dont_filter=True)
 
         # print 1
         # filename = response.url.split("/")[-2]
@@ -90,23 +100,40 @@ class AcfunSpider(CrawlSpider):
         title = response.meta['title']
 
         jsonresponse = json.loads(response.body_as_unicode())
-        responseStatus = jsonresponse[u'status']
-        responseSuccess = jsonresponse[u'success']
-        if responseStatus == 200 and responseSuccess == True:
-            commentsList = jsonresponse[u'data'][u'commentContentArr']
+        commentCount = jsonresponse.get(u'totalCount')
+        if commentCount and commentCount > 0:
+            commentsList = jsonresponse.get(u'commentsMap')
             # 开始解析json评论
             for m, n in enumerate(commentsList):
                 commentJson = commentsList[n]
                 try:
-                    commentItem = AcfunCommentItem(commentJson)
+                    commentItem = AcfunCommentItem()
                     # 设定acid
                     commentItem['acid'] = acid
                     # 设定title
                     commentItem['title'] = title
                     # 默认是float，转成long
-                    commentItem['cid'] = long(commentItem['cid'])
-                    commentItem['quoteId'] = long(commentItem['quoteId'])
-                    commentItem['userID'] = long(commentItem['userID'])
+                    commentItem['cid'] = long(commentJson['cid'])
+                    commentItem['quoteId'] = long(commentJson['quoteId'])
+                    commentItem['content'] = commentJson['content']
+                    commentItem['postDate'] = commentJson['postDate']
+                    commentItem['userID'] = long(commentJson['userId'])
+                    commentItem['userName'] = commentJson['userName']
+                    commentItem['userImg'] = commentJson['avatarImage']
+                    # commentItem['count'] = commentJson['count']
+                    commentItem['deep'] = commentJson['floor']
+                    commentItem['isSignedUpCollege'] = commentJson['isSignedUpCollege']
+                    # commentItem['refCount'] = commentJson['refCount']
+                    # commentItem['ups'] = commentJson['ups']
+                    # commentItem['downs'] = commentJson['downs']
+                    commentItem['nameRed'] = commentJson['nameRed']
+                    commentItem['avatarFrame'] = commentJson['avatarFrame']
+                    commentItem['isDelete'] = commentJson['isDelete']
+                    commentItem['isUpDelete'] = commentJson['isUpDelete']
+                    # commentItem['nameType'] = commentJson['nameType']
+                    commentItem['verified'] = commentJson['verified']
+                    # commentItem['updateDate'] = commentJson['updateDate']
+                    # commentItem['verifiedText'] = commentJson['verifiedText']
                     yield commentItem
                 except Exception,e:
                     self.logger.error(str(e))
@@ -123,7 +150,7 @@ class AcfunSpider(CrawlSpider):
         raise scrapy.exceptions.DontCloseSpider("I want to live a little longer...")
 
     def create_request(self,url):
-        return scrapy.Request(url=url, callback=self.parse0, dont_filter=True)
+        return scrapy.Request(url=url, callback=self.parse0, meta={'proxy':self.http_proxy}, dont_filter=True)
 
     def close(spider, reason):
         spider.DBUtils.saveMemeItems(spider._cache)

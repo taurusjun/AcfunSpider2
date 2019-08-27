@@ -40,10 +40,17 @@ ROBOTSTXT_OBEY = True
 #TELNETCONSOLE_ENABLED = False
 
 # Override the default request headers:
-#DEFAULT_REQUEST_HEADERS = {
-#   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-#   'Accept-Language': 'en',
-#}
+DEFAULT_REQUEST_HEADERS = {
+   'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3",
+   'Accept-Language': "zh-CN,zh;q=0.9",
+   "Accept-Encoding": "gzip, deflate",
+   "Connection": "keep-alive",
+   "Referer": "https://www.acfun.cn/v/list63/index.htm",
+   "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36",
+   "Origin": "https://www.acfun.cn",
+   'Upgrade-Insecure-Requests': '1',
+   'Content-Type': 'application/x-www-form-urlencoded'
+}
 
 # Enable or disable spider middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
@@ -100,10 +107,10 @@ IMAGES_RESULT_FIELD='localImgPath'
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 DATABASE = {'drivername': 'mysql',
-            'host': '127.0.0.1',
+            'host': 'localhost',
             'port': '3306',
             'username': 'root',
-            'password': '123456',
+            'password': 'r123456',
             'database': 'actest2',
             'query': {'charset': 'utf8'}}
 
