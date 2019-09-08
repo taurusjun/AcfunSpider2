@@ -113,8 +113,9 @@ DATABASE = {'drivername': 'mysql',
             'port': '3306',
             'username': 'root',
             'password': 'r123456',
-            'database': 'actest2',
-            'query': {'charset': 'utf8'}}
+            'database': 'actest2'
+            # 'query': {'charset': 'utf8'}
+            }
 
 LOG_ENABLED = True
 LOG_ENCODING = "utf-8"
@@ -142,4 +143,4 @@ ROBOTSTXT_OBEY = False
 # DOWNLOAD_TIMEOUT = 15
 
 ####测试模式，不读写数据库#####
-TEST_MODE = True
+TEST_MODE = False
