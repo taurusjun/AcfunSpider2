@@ -1,16 +1,12 @@
 #!/usr/bin/python
 #coding=utf8
 
-import scrapy
-import re
 import json
 import time
 
-from pydispatch import dispatcher
 from scrapy import signals, exceptions
 from scrapy.spiders import CrawlSpider
 
-from AcfunSpider.IPProxy import IPProxy
 from AcfunSpider.utils import utils
 from AcfunSpider.items import *
 from lru import LRU
@@ -24,11 +20,9 @@ else:
 
 class AcfunSpider(CrawlSpider):
     name = "acfun"
-    # allowed_domains = ["dmoz.org"]
-    start_urls = [
-        # "http://www.acfun.cn/v/list110/index.htm"
-        "http://webapi.aixifan.com/query/article/list?pageNo=1&size=10&realmIds=5,1,2,4&originalOnly=false&orderType=1&filterTitleImage=true"
-    ]
+    start_urls = (
+        "http://webapi.aixifan.com/query/article/list?pageNo=1&size=10&realmIds=5,1,2,4&originalOnly=false&orderType=1&filterTitleImage=true",
+    )
     _cache = LRU(20480)
 
     def __init__(self, *args, **kwargs):
@@ -37,8 +31,6 @@ class AcfunSpider(CrawlSpider):
         self.DBUtils=DBOperation()
         self.DBUtils.loadACfunCommentItemsToCache(self._cache)
         self.DBUtils.clearCacheItemInDB()
-        self.IPProxy = IPProxy()
-        # dispatcher.connect(self.spider_idle, signals.spider_idle)
         self.logger.info("initlizing...Done.")
 
     @classmethod
@@ -48,20 +40,7 @@ class AcfunSpider(CrawlSpider):
         crawler.signals.connect(spider.spider_idle, signal=scrapy.signals.spider_idle)
         return spider
 
-    # def __init__(self, *args, **kwargs):
-    #     super(AcfunSpider, self).__init__(*args, **kwargs)
-    #     dispatcher.connect(self.spider_idle, signals.spider_idle)
-
-    def start_requests(self):
-        for x in self.start_urls:
-            proxy = self.IPProxy.getProxy('http')
-            self.logger.info("http proxy:%s"%proxy)
-            try:
-                yield scrapy.Request(url=x, callback=self.parse0, meta={'proxy':proxy},dont_filter=True)
-            except Exception as e:
-                self.logger.error("proxy: %s not usable"%proxy )
-
-    def parse0(self, response):
+    def parse(self, response):
         replyListItems = self.parse_reply_list(response)
         for itm in replyListItems:
             acid = itm['acid']
@@ -72,14 +51,7 @@ class AcfunSpider(CrawlSpider):
             url = "https://www.acfun.cn/rest/pc-direct/comment/listByFloor?sourceId=" + str(acid) + "&sourceType=3&page=1"
             # 新版评论
             # url = "https://www.acfun.cn/rest/pc-direct/comment/list?sourceId=" + str(acid) + "&sourceType=3&page=1"
-            proxy = self.IPProxy.getProxy('https')
-            self.logger.info("https proxy:%s"%proxy)
-            yield scrapy.Request(url, meta={'acid':str(acid),'title':title,'proxy':proxy}, callback=self.parse_comment_contents, dont_filter=True)
-
-        # print 1
-        # filename = response.url.split("/")[-2]
-        # with open(filename, 'wb') as f:
-        #     f.write(response.body)
+            yield scrapy.Request(url, meta={'acid':str(acid),'title':title}, callback=self.parse_comment_contents, dont_filter=True)
 
     # 主内容区：xpath: '//div[@id="mainer"]//div[@id="block-content-article"]//div[@class="mainer"]/div[@class="item"]/a/@href'
     # 最新回复区：xpath: //div[@id="mainer"]//div[@id="block-reply-article"]//div[@class="mainer"]//a/@href'
@@ -161,9 +133,8 @@ class AcfunSpider(CrawlSpider):
         raise scrapy.exceptions.DontCloseSpider("I want to live a little longer...")
 
     def create_request(self,url):
-        proxy = self.IPProxy.getProxy('http')
-        self.logger.info("next round start -- http proxy:%s"%proxy)
-        return scrapy.Request(url=url, callback=self.parse0, meta={'proxy':proxy}, dont_filter=True)
+        self.logger.info("-- next round start -- ")
+        return scrapy.Request(url=url, callback=self.parse, dont_filter=True)
 
     def close(self,spider, reason):
         spider.DBUtils.saveMemeItems(spider._cache)

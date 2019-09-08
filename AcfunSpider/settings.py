@@ -62,6 +62,7 @@ DEFAULT_REQUEST_HEADERS = {
 # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
    'AcfunSpider.middlewares.MyRetryMiddleware': 200,
+   'AcfunSpider.middlewares.MyProxyMiddleware': 201,
    'scrapy.downloadermiddlewares.retry.RetryMiddleware':None
 }
 
@@ -117,7 +118,7 @@ DATABASE = {'drivername': 'mysql',
 
 LOG_ENABLED = True
 LOG_ENCODING = "utf-8"
-LOG_LEVEL = logging.INFO
+LOG_LEVEL = logging.DEBUG
 LOG_FILE = "Spider.log"
 # LOG_STDOUT = True # 这一句在scrapyd-deploy的时候必须注释掉
 # LOG_FORMATTER = "%(asctime)s [%(name)s] %(levelname)s: %(message)s"
@@ -141,4 +142,4 @@ ROBOTSTXT_OBEY = False
 # DOWNLOAD_TIMEOUT = 15
 
 ####测试模式，不读写数据库#####
-TEST_MODE = False
+TEST_MODE = True

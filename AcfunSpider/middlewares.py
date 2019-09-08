@@ -17,8 +17,19 @@ from scrapy.utils.response import response_status_message
 from scrapy.core.downloader.handlers.http11 import TunnelError
 
 from AcfunSpider.IPProxy import IPProxy
+from urlparse import urlparse
 
 MyMiddlewareLogging = logging.getLogger("MyMiddleware")
+
+class MyProxyMiddleware(object):
+    """Custom ProxyMiddleware."""
+    def process_request(self, request, spider):
+        url = request.url
+        parsed_uri = urlparse(url)
+        url_protocol = parsed_uri.scheme
+        proxy = IPProxy.getProxy(url_protocol)
+        request.meta['proxy'] = proxy
+        MyMiddlewareLogging.warning('add proxy: %s' % proxy)
 
 class MyRetryMiddleware(RetryMiddleware):
     logger = logging.getLogger(__name__)
