@@ -4,17 +4,23 @@
 import scrapy
 import re
 import json
-
 import time
 
 from pydispatch import dispatcher
 from scrapy import signals, exceptions
 from scrapy.spiders import CrawlSpider
 
-from AcfunSpider.DBOperation import DBOperation
+from AcfunSpider.IPProxy import IPProxy
+from AcfunSpider.utils import utils
 from AcfunSpider.items import *
 from lru import LRU
+from datetime import datetime
 
+from AcfunSpider import settings
+if settings.TEST_MODE:
+    from AcfunSpider.DBDummyOperation import DBDummyOperation as DBOperation 
+else:
+    from AcfunSpider.DBOperation import DBOperation as DBOperation 
 
 class AcfunSpider(CrawlSpider):
     name = "acfun"
@@ -25,19 +31,15 @@ class AcfunSpider(CrawlSpider):
     ]
     _cache = LRU(20480)
 
-    proxy = '120.83.122.207:9999'
-    proxy2 = '120.83.122.207:9999'
-
     def __init__(self, *args, **kwargs):
         self.logger.info("initlizing...")
         super(AcfunSpider, self).__init__(*args, **kwargs)
         self.DBUtils=DBOperation()
         self.DBUtils.loadACfunCommentItemsToCache(self._cache)
         self.DBUtils.clearCacheItemInDB()
+        self.IPProxy = IPProxy()
         # dispatcher.connect(self.spider_idle, signals.spider_idle)
         self.logger.info("initlizing...Done.")
-        self.http_proxy="http://"+str(self.proxy)
-        self.https_proxy="https://"+str(self.proxy2)
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -52,7 +54,12 @@ class AcfunSpider(CrawlSpider):
 
     def start_requests(self):
         for x in self.start_urls:
-            yield scrapy.Request(url=x, callback=self.parse0, meta={'proxy':self.http_proxy},dont_filter=True)
+            proxy = self.IPProxy.getProxy('http')
+            self.logger.info("http proxy:%s"%proxy)
+            try:
+                yield scrapy.Request(url=x, callback=self.parse0, meta={'proxy':proxy},dont_filter=True)
+            except Exception as e:
+                self.logger.error("proxy: %s not usable"%proxy )
 
     def parse0(self, response):
         replyListItems = self.parse_reply_list(response)
@@ -65,7 +72,9 @@ class AcfunSpider(CrawlSpider):
             url = "https://www.acfun.cn/rest/pc-direct/comment/listByFloor?sourceId=" + str(acid) + "&sourceType=3&page=1"
             # 新版评论
             # url = "https://www.acfun.cn/rest/pc-direct/comment/list?sourceId=" + str(acid) + "&sourceType=3&page=1"
-            yield scrapy.Request(url, meta={'acid':str(acid),'title':title,'proxy':self.https_proxy}, callback=self.parse_comment_contents, dont_filter=True)
+            proxy = self.IPProxy.getProxy('https')
+            self.logger.info("https proxy:%s"%proxy)
+            yield scrapy.Request(url, meta={'acid':str(acid),'title':title,'proxy':proxy}, callback=self.parse_comment_contents, dont_filter=True)
 
         # print 1
         # filename = response.url.split("/")[-2]
@@ -116,7 +125,9 @@ class AcfunSpider(CrawlSpider):
                     commentItem['cid'] = long(commentJson['cid'])
                     commentItem['quoteId'] = long(commentJson['quoteId'])
                     commentItem['content'] = commentJson['content']
-                    commentItem['postDate'] = commentJson['postDate']
+                    #postDate处理，postDate必须是datetime类型
+                    postDate = commentJson['postDate']
+                    commentItem['postDate'] = utils.convetStrToDatetime(postDate)                    
                     commentItem['userID'] = long(commentJson['userId'])
                     commentItem['userName'] = commentJson['userName']
                     commentItem['userImg'] = commentJson['avatarImage']
@@ -150,8 +161,10 @@ class AcfunSpider(CrawlSpider):
         raise scrapy.exceptions.DontCloseSpider("I want to live a little longer...")
 
     def create_request(self,url):
-        return scrapy.Request(url=url, callback=self.parse0, meta={'proxy':self.http_proxy}, dont_filter=True)
+        proxy = self.IPProxy.getProxy('http')
+        self.logger.info("next round start -- http proxy:%s"%proxy)
+        return scrapy.Request(url=url, callback=self.parse0, meta={'proxy':proxy}, dont_filter=True)
 
-    def close(spider, reason):
+    def close(self,spider, reason):
         spider.DBUtils.saveMemeItems(spider._cache)
         spider.logger.info("close it with reason: %s!" % str(reason))

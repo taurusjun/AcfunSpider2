@@ -60,9 +60,10 @@ DEFAULT_REQUEST_HEADERS = {
 
 # Enable or disable downloader middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    'AcfunSpider.middlewares.MyCustomDownloaderMiddleware': 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+   'AcfunSpider.middlewares.MyRetryMiddleware': 200,
+   'scrapy.downloadermiddlewares.retry.RetryMiddleware':None
+}
 
 # Enable or disable extensions
 # See http://scrapy.readthedocs.org/en/latest/topics/extensions.html
@@ -138,3 +139,6 @@ ROBOTSTXT_OBEY = False
 # RETRY_ENABLED = False
 # # 减小下载超时
 # DOWNLOAD_TIMEOUT = 15
+
+####测试模式，不读写数据库#####
+TEST_MODE = False
