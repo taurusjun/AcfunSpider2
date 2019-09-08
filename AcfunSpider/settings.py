@@ -113,8 +113,8 @@ DATABASE = {'drivername': 'mysql',
             'port': '3306',
             'username': 'root',
             'password': 'r123456',
-            'database': 'actest2'
-            # 'query': {'charset': 'utf8'}
+            'database': 'actest2',
+            'query': {'charset': 'utf8mb4'}
             }
 
 LOG_ENABLED = True
