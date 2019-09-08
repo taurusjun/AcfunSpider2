@@ -118,7 +118,7 @@ DATABASE = {'drivername': 'mysql',
 
 LOG_ENABLED = True
 LOG_ENCODING = "utf-8"
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL = logging.INFO
 LOG_FILE = "Spider.log"
 # LOG_STDOUT = True # 这一句在scrapyd-deploy的时候必须注释掉
 # LOG_FORMATTER = "%(asctime)s [%(name)s] %(levelname)s: %(message)s"

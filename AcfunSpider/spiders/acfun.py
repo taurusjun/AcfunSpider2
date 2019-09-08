@@ -3,6 +3,7 @@
 
 import json
 import time
+import random
 
 from scrapy import signals, exceptions
 from scrapy.spiders import CrawlSpider
@@ -125,8 +126,9 @@ class AcfunSpider(CrawlSpider):
 
     def spider_idle(self):
         self.logger.info("Now LRU size is %s" % len(self._cache))
-        self.logger.info("Sleep 3s and try next query...")
-        time.sleep(3)
+        sleep_sec = random.randint(2,5)
+        self.logger.info("Sleep %s and try next query..."%sleep_sec)
+        time.sleep(sleep_sec)
         self.logger.info("---------------Next round query---------------")
         for url in self.start_urls:
             self.crawler.engine.crawl(self.create_request(url), self)

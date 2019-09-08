@@ -29,7 +29,7 @@ class MyProxyMiddleware(object):
         url_protocol = parsed_uri.scheme
         proxy = IPProxy.getProxy(url_protocol)
         request.meta['proxy'] = proxy
-        MyMiddlewareLogging.warning('add proxy: %s' % proxy)
+        MyMiddlewareLogging.info('add proxy: %s' % proxy)
 
 class MyRetryMiddleware(RetryMiddleware):
     logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class MyRetryMiddleware(RetryMiddleware):
         if proxy:
             # delete proxy from proxies pool
             MyMiddlewareLogging.warning('Delete proxy: %s'%proxy)
-            # IPProxy.deleteProxy(proxy)
+            IPProxy.deleteProxy(proxy)
 
     def process_response(self, request, response, spider):
         if request.meta.get('dont_retry', False):
